@@ -81,7 +81,9 @@ function create(){
 	scoreText = this.add.text(16,16, 'score: 0', {fontSize: '32px', fill:'#000'});
 	bombs = this.physics.add.group();
 	this.physics.add.collider(bombs,platforms);
+	this.physics.add.collider(bombs,bombs);
 	this.physics.add.collider(player,bombs, hitBomb, null, this);
+	this.physics.add.overlap(bombs,stars,bombHitStar,null,this);
 }
 
 
@@ -105,11 +107,15 @@ function update(){
 	} 
 	
 }
-function hitBomb(player, bomb){
+function hitBomb(player, bombs){
 	this.physics.pause();
 	player.setTint(0xff0000);
 	player.anims.play('turn');
 	gameOver=true;
+}
+
+function bombHitStar(bombs, stars){
+	bombs.setVelocity(400);
 }
 
 function collectStar(player, star){
