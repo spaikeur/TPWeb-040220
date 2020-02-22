@@ -27,6 +27,9 @@ function init(){
 	var stars;
 	var scoreText;
 	var bomb;
+	var scoreJump;
+	var jumpCount;
+
 }
 
 function preload(){
@@ -55,6 +58,8 @@ function create(){
 	this.physics.add.collider(player,platforms);
 	
 	cursors = this.input.keyboard.createCursorKeys(); 
+
+	var timeSinceLastIncrement = 0;
 	
 	this.anims.create({
 		key:'left',
@@ -79,12 +84,12 @@ function create(){
 	this.physics.add.overlap(player,stars,collectStar,null,this);
 
 	scoreText = this.add.text(16,16, 'score: 0', {fontSize: '32px', fill:'#000'});
+	scoreJump = this.add.text(16,48, 'Jump: 0', {fontSize: '32px', fill:'#000'});
 	bombs = this.physics.add.group();
 	this.physics.add.collider(bombs,platforms);
 	this.physics.add.collider(player,bombs, hitBomb, null, this);
+	jumpCount = 0;
 }
-
-
 
 function update(){
 	if(cursors.left.isDown){
@@ -101,10 +106,36 @@ function update(){
 	}
 	
 	if(cursors.up.isDown && player.body.touching.down){
-		player.setVelocityY(-330);
-	} 
-	
+		player.body.touching.down
+		player.setVelocityY(-330);	
+		scoreJump.setText('scoreJump: '+jumpCount);
+	}else if(cursors.up.isUp && !player.body.touching.down){
+		this.time.addEvent({
+			delay: 100,
+			callback: ()=>{
+				if(cursors.up.isDown  && jumpCount <1){
+				doubleJump(player)
+				}
+			},
+		})	
+	}
+
+	if(player.body.touching.down){
+		jumpCount = 0;
+		scoreJump.setText('scoreJump: '+jumpCount);
+	}
+
+
 }
+
+function doubleJump(player){
+	
+		player.setVelocityY(-330);
+		jumpCount += 1;
+		scoreJump.setText('scoreJump: '+jumpCount);
+}
+
+
 function hitBomb(player, bomb){
 	this.physics.pause();
 	player.setTint(0xff0000);
