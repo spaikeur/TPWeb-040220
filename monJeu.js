@@ -100,7 +100,7 @@ function update(){
 		player.setVelocityX(300);
 		player.anims.play('left', true);
 		player.setFlipX(false);
-	}else{
+	}else{ 
 		player.anims.play('stop', true);
 		player.setVelocityX(0);
 	}
