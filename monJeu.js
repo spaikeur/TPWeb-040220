@@ -87,8 +87,13 @@ function create(){
 	scoreJump = this.add.text(16,48, 'Jump: 0', {fontSize: '32px', fill:'#000'});
 	bombs = this.physics.add.group();
 	this.physics.add.collider(bombs,platforms);
+	this.physics.add.collider(bombs,bombs);
 	this.physics.add.collider(player,bombs, hitBomb, null, this);
+
 	jumpCount = 0;
+
+	this.physics.add.overlap(bombs,stars,bombHitStar,null,this);
+
 }
 
 function update(){
@@ -136,11 +141,15 @@ function doubleJump(player){
 }
 
 
-function hitBomb(player, bomb){
+function hitBomb(player, bombs){
 	this.physics.pause();
 	player.setTint(0xff0000);
 	player.anims.play('turn');
 	gameOver=true;
+}
+
+function bombHitStar(bombs, stars){
+	bombs.setVelocity(400);
 }
 
 function collectStar(player, star){
