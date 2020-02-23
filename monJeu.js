@@ -19,6 +19,9 @@ scene: {
 
 var game = new Phaser.Game(config);
 var score = 0;
+var	jumpCount = 0;
+var	playerLife = 3;
+
 
 function init(){
  	var platforms;
@@ -27,9 +30,8 @@ function init(){
 	var stars;
 	var scoreText;
 	var bomb;
-	var scoreJump;
-	var jumpCount;
-
+	var lifeText;
+	
 }
 
 function preload(){
@@ -53,7 +55,7 @@ function create(){
 	
 	player = this.physics.add.sprite(100,450,'perso');
 	player.setCollideWorldBounds(true);
-	player.setBounce(0.2);
+	player.setBounce(0.01);
 	player.body.setGravityY(000);
 	this.physics.add.collider(player,platforms);
 	
@@ -84,14 +86,13 @@ function create(){
 	this.physics.add.overlap(player,stars,collectStar,null,this);
 
 	scoreText = this.add.text(16,16, 'score: 0', {fontSize: '32px', fill:'#000'});
-	scoreJump = this.add.text(16,48, 'Jump: 0', {fontSize: '32px', fill:'#000'});
+	lifeText = this.add.text(16,48, 'Vie: 3', {fontSize: '32px', fill:'#000'});
 	bombs = this.physics.add.group();
 	this.physics.add.collider(bombs,platforms);
 	this.physics.add.collider(bombs,bombs);
 	this.physics.add.collider(player,bombs, hitBomb, null, this);
 
-	jumpCount = 0;
-
+	
 	this.physics.add.overlap(bombs,stars,bombHitStar,null,this);
 
 }
@@ -117,7 +118,7 @@ function update(){
 	if(cursors.up.isDown && player.body.touching.down){
 		player.body.touching.down
 		player.setVelocityY(-330);	
-		scoreJump.setText('scoreJump: '+jumpCount);
+		
 	}else if(cursors.up.isUp && !player.body.touching.down){
 		this.time.addEvent({
 			delay: 100,
@@ -131,26 +132,32 @@ function update(){
 
 	if(player.body.touching.down){
 		jumpCount = 0;
-		scoreJump.setText('scoreJump: '+jumpCount);
+		
 	}
 
 
 }
 
 function doubleJump(player){
-	
 		player.setVelocityY(-330);
 		jumpCount += 1;
-		scoreJump.setText('scoreJump: '+jumpCount);
+		
 }
 
 
 function hitBomb(player, bombs){
-	this.physics.pause();
-	player.setTint(0xff0000);
-	player.anims.play('turn');
-	gameOver=true;
+	playerLife -= 1;
+	lifeText.setText('Vie: '+playerLife);
+	bombs.disableBody(true,true);
+	if(playerLife == 0){
+		lifeText.setText('Vie: Mort');
+		this.physics.pause();
+		player.setTint(0xff0000);
+		player.anims.play('turn');
+		gameOver=true;
+	}
 }
+
 
 function bombHitStar(bombs, stars){
 	bombs.setVelocity(400);
