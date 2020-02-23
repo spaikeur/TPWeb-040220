@@ -38,6 +38,7 @@ function preload(){
 	this.load.image('background','_img/Background800x600.png');	
 	this.load.image('fond','_img/ground.png');
 	this.load.image('etoile','_img/Etoile.png');
+	this.load.image('vie','_img/Etoile_Vie.png')
 	this.load.image('sol','_img/platform.png');
 	this.load.image('bomb','_img/Bombe.png');
 	this.load.spritesheet('perso','_img/adventurer-SheetW.png',{frameWidth: 24, frameHeight: 35});
@@ -82,8 +83,15 @@ function create(){
 		setXY: {x:12,y:0,stepX:70}
 	});
 	
+	healstars = this.physics.add.group({
+		key: 'vie',
+		setXY : {x:410, y: 105}
+	});
+
 	this.physics.add.collider(stars,platforms);
+	this. physics.add.collider(healstars,platforms);
 	this.physics.add.overlap(player,stars,collectStar,null,this);
+	this.physics.add.overlap(player,healstars,heal,null,this);
 
 	scoreText = this.add.text(16,16, 'score: 0', {fontSize: '32px', fill:'#000'});
 	lifeText = this.add.text(16,48, 'Vie: 3', {fontSize: '32px', fill:'#000'});
@@ -163,6 +171,14 @@ function bombHitStar(bombs, stars){
 	bombs.setVelocity(400);
 }
 
+function heal(player, healstars){
+	if(playerLife < 3){
+		playerLife += 1;
+		lifeText.setText('Vie: '+playerLife);
+	}
+	healstars.disableBody(true,true);
+}
+
 function collectStar(player, star){
 	star.disableBody(true,true);
 	score += 10;
@@ -171,7 +187,12 @@ function collectStar(player, star){
 		stars.children.iterate(function(child){
 			child.enableBody(true,child.x,0, true, true);
 		});
-		
+
+		healstars.children.iterate(function(child){
+			child.enableBody(true,child.x,0, true, true);
+		});
+
+
 		var x = (player.x < 400) ? 
 			Phaser.Math.Between(400,800):
 			Phaser.Math.Between(0,400);
