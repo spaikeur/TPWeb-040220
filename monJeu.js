@@ -110,6 +110,10 @@ function update(){
 		player.setVelocityX(0);
 	}
 	
+	if(cursors.down.isDown && !player.body.touching.down){
+		player.setVelocityY(300);
+	}
+
 	if(cursors.up.isDown && player.body.touching.down){
 		player.body.touching.down
 		player.setVelocityY(-330);	
