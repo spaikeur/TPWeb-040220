@@ -21,6 +21,7 @@ var game = new Phaser.Game(config);
 var score = 0;
 var	jumpCount = 0;
 var	playerLife = 3;
+var foesLife = 3;
 
 
 function init(){
@@ -31,6 +32,7 @@ function init(){
 	var scoreText;
 	var bomb;
 	var lifeText;
+	var foes;
 	
 }
 
@@ -41,10 +43,9 @@ function preload(){
 	this.load.image('vie','_img/Etoile_Vie.png')
 	this.load.image('sol','_img/platform.png');
 	this.load.image('bomb','_img/Bombe.png');
+	this.load.image('ennemi','_img/Etoile_Ennemi.png')
 	this.load.spritesheet('perso','_img/adventurer-SheetW.png',{frameWidth: 24, frameHeight: 35});
 }
-
-
 
 function create(){
 	this.add.image(0,0,'background').setOrigin(0,0);
@@ -63,7 +64,7 @@ function create(){
 	cursors = this.input.keyboard.createCursorKeys(); 
 
 	var timeSinceLastIncrement = 0;
-	
+
 	this.anims.create({
 		key:'left',
 		frames: this.anims.generateFrameNumbers('perso', {start: 8, end: 13}),
@@ -89,23 +90,32 @@ function create(){
 	});
 
 	this.physics.add.collider(stars,platforms);
-	this. physics.add.collider(healstars,platforms);
+	this.physics.add.collider(healstars,platforms);
 	this.physics.add.overlap(player,stars,collectStar,null,this);
 	this.physics.add.overlap(player,healstars,heal,null,this);
+	
 
 	scoreText = this.add.text(16,16, 'score: 0', {fontSize: '32px', fill:'#000'});
 	lifeText = this.add.text(16,48, 'Vie: 3', {fontSize: '32px', fill:'#000'});
 	bombs = this.physics.add.group();
+	foes = this.physics.add.group();
+
 	this.physics.add.collider(bombs,platforms);
 	this.physics.add.collider(bombs,bombs);
+	this.physics.add.collider(foes,platforms);
+	this.physics.add.collider(foes,foes);
+	this.physics.add.collider(player,foes);
 	this.physics.add.collider(player,bombs, hitBomb, null, this);
-
-	
+	this.physics.add.collider(player,foes, hitFoes, null, this);
 	this.physics.add.overlap(bombs,stars,bombHitStar,null,this);
+	this.physics.add.overlap(foes,healstars,healFoe,null,this);
 
 }
 
 function update(){
+
+	// foes.setVelocityX(player);
+
 	if(cursors.left.isDown){
 		player.anims.play('left', true);
 		player.setVelocityX(-300);
@@ -136,22 +146,19 @@ function update(){
 				}
 			},
 		})	
+		
 	}
 
 	if(player.body.touching.down){
 		jumpCount = 0;
-		
 	}
-
-
+	
 }
 
 function doubleJump(player){
-		player.setVelocityY(-330);
-		jumpCount += 1;
-		
+	player.setVelocityY(-330);
+	jumpCount += 1;
 }
-
 
 function hitBomb(player, bombs){
 	playerLife -= 1;
@@ -166,6 +173,18 @@ function hitBomb(player, bombs){
 	}
 }
 
+function hitFoes(player, foes){
+	playerLife -= 1;
+	lifeText.setText('Vie: '+playerLife);
+	foes.disableBody(true,true);
+	if(playerLife == 0){
+		lifeText.setText('Vie: Mort');
+		this.physics.pause();
+		player.setTint(0xff0000);
+		player.anims.play('turn');
+		gameOver=true;
+	}
+}
 
 function bombHitStar(bombs, stars){
 	bombs.setVelocity(400);
@@ -175,8 +194,24 @@ function heal(player, healstars){
 	if(playerLife < 3){
 		playerLife += 1;
 		lifeText.setText('Vie: '+playerLife);
+		var x = (player.x < 400) ? 
+			Phaser.Math.Between(400,800):
+			Phaser.Math.Between(0,400);
+		var y = (player.y < 400);
+		
+		var foe = foes.create(x, 500, 'ennemi');
+		foe.setCollideWorldBounds(true);
+		foe.setBounce(1);
+		foe.setVelocityX(Phaser.Math.Between(-275, 275), 20);
 	}
 	healstars.disableBody(true,true);
+}
+
+function healFoe(foes, healstars){
+	if(foesLife < 3){
+		foesLife += 1;
+	}
+	healstars.disableBody(true, true);
 }
 
 function collectStar(player, star){
@@ -192,11 +227,13 @@ function collectStar(player, star){
 			child.enableBody(true,child.x,0, true, true);
 		});
 
-
 		var x = (player.x < 400) ? 
 			Phaser.Math.Between(400,800):
 			Phaser.Math.Between(0,400);
+		var y = (player.y < 400);
+
 		var bomb = bombs.create(x, 16, 'bomb');
+		
 		bomb.setBounce(1);
 		bomb.setCollideWorldBounds(true);
 		bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
