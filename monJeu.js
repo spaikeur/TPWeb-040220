@@ -33,7 +33,7 @@ function init(){
 	var bomb;
 	var lifeText;
 	var foes;
-	
+	var projectiles;
 }
 
 function preload(){
@@ -43,7 +43,8 @@ function preload(){
 	this.load.image('vie','_img/Etoile_Vie.png')
 	this.load.image('sol','_img/platform.png');
 	this.load.image('bomb','_img/Bombe.png');
-	this.load.image('ennemi','_img/Etoile_Ennemi.png')
+	this.load.image('projectile','_img/projectiles.png');
+	this.load.image('ennemi','_img/Etoile_Ennemi.png');
 	this.load.spritesheet('perso','_img/adventurer-SheetW.png',{frameWidth: 24, frameHeight: 35});
 }
 
@@ -61,7 +62,9 @@ function create(){
 	player.body.setGravityY(000);
 	this.physics.add.collider(player,platforms);
 	
-	cursors = this.input.keyboard.createCursorKeys(); 
+	cursors = this.input.keyboard.createCursorKeys();
+	shootRight = this.input.keyboard.addKey('D');
+	shootLeft = this.input.keyboard.addKey('Q');
 
 	var timeSinceLastIncrement = 0;
 
@@ -99,22 +102,23 @@ function create(){
 	lifeText = this.add.text(16,48, 'Vie: 3', {fontSize: '32px', fill:'#000'});
 	bombs = this.physics.add.group();
 	foes = this.physics.add.group();
+	projectiles = this.physics.add.group();
 
 	this.physics.add.collider(bombs,platforms);
 	this.physics.add.collider(bombs,bombs);
 	this.physics.add.collider(foes,platforms);
 	this.physics.add.collider(foes,foes);
-	this.physics.add.collider(player,foes);
+	this.physics.add.collider(projectiles,platforms);
 	this.physics.add.collider(player,bombs, hitBomb, null, this);
 	this.physics.add.collider(player,foes, hitFoes, null, this);
+	this.physics.add.collider(projectiles,foes, hitProjectiles, null,this);
 	this.physics.add.overlap(bombs,stars,bombHitStar,null,this);
 	this.physics.add.overlap(foes,healstars,healFoe,null,this);
+	
 
 }
 
 function update(){
-
-	// foes.setVelocityX(player);
 
 	if(cursors.left.isDown){
 		player.anims.play('left', true);
@@ -152,7 +156,13 @@ function update(){
 	if(player.body.touching.down){
 		jumpCount = 0;
 	}
-	
+		
+	if (Phaser.Input.Keyboard.JustDown(shootRight)) {
+		fireLaserRight();
+	}
+	if (Phaser.Input.Keyboard.JustDown(shootLeft)) {
+		fireLaserLeft();
+	}
 }
 
 function doubleJump(player){
@@ -173,6 +183,26 @@ function hitBomb(player, bombs){
 	}
 }
 
+function fireLaserRight(){
+	var projectile = projectiles.create(player.x, player.y,'projectile');
+	projectile.setVelocityX(300);
+
+}
+
+function fireLaserLeft(){
+	var projectile = projectiles.create(player.x, player.y,'projectile');
+	projectile.setVelocityX(-300);
+	projectile.setGravityY(0);
+}
+
+function hitProjectiles(projectiles,foes){
+	foesLife -= 1;
+	projectiles.disableBody(true,true);
+	if(foesLife == 0){
+		foes.disableBody(true,true);
+	}
+}
+
 function hitFoes(player, foes){
 	playerLife -= 1;
 	lifeText.setText('Vie: '+playerLife);
@@ -190,6 +220,7 @@ function bombHitStar(bombs, stars){
 	bombs.setVelocity(400);
 }
 
+
 function heal(player, healstars){
 	if(playerLife < 3){
 		playerLife += 1;
@@ -202,7 +233,7 @@ function heal(player, healstars){
 		var foe = foes.create(x, 500, 'ennemi');
 		foe.setCollideWorldBounds(true);
 		foe.setBounce(1);
-		foe.setVelocityX(Phaser.Math.Between(-275, 275), 20);
+		foe.setVelocityX(Phaser.Math.Between(-300, 300), 30);
 	}
 	healstars.disableBody(true,true);
 }
